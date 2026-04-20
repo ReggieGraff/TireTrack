@@ -1,0 +1,1137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Used Tire Inventory</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#0f0f0f;--surface:#1a1a1a;--surface2:#242424;--surface3:#2e2e2e;
+    --border:#333;--border2:#444;--text:#f0f0f0;--text2:#aaa;--text3:#666;
+    --accent:#e8c840;--accent2:#c9a800;
+    --green:#3dba6e;--green-dim:#1e3d2a;
+    --blue:#4a9eff;--blue-dim:#1a2d42;
+    --orange:#ff8c42;--orange-dim:#3a2010;
+    --red:#ff4d4d;--red-dim:#3a1010;
+    --radius:8px;
+    --font-display:'Bebas Neue',sans-serif;
+    --font:'DM Sans',sans-serif;
+    --font-mono:'DM Mono',monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15px;min-height:100vh;}
+  header{background:var(--surface);border-bottom:2px solid var(--accent);padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:60px;position:sticky;top:0;z-index:100;}
+  .logo{font-family:var(--font-display);font-size:28px;letter-spacing:2px;color:var(--accent);}
+  .logo span{color:var(--text2);font-size:16px;letter-spacing:1px;margin-left:12px;font-family:var(--font);font-weight:400;}
+  .header-actions{display:flex;gap:10px;align-items:center;}
+  nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;display:flex;gap:4px;overflow-x:auto;}
+  .tab{padding:12px 20px;cursor:pointer;border:none;background:none;color:var(--text2);font-family:var(--font);font-size:14px;font-weight:500;border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap;}
+  .tab:hover{color:var(--text);}
+  .tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+  .tab-badge{background:var(--accent);color:#000;border-radius:10px;padding:1px 7px;font-size:11px;font-weight:600;margin-left:6px;}
+  main{padding:24px;max-width:1400px;margin:0 auto;}
+  .page{display:none;}.page.active{display:block;}
+  .btn{padding:9px 18px;border-radius:var(--radius);border:none;cursor:pointer;font-family:var(--font);font-size:14px;font-weight:600;transition:all .15s;display:inline-flex;align-items:center;gap:6px;}
+  .btn-primary{background:var(--accent);color:#000;}.btn-primary:hover{background:var(--accent2);}
+  .btn-secondary{background:var(--surface2);color:var(--text);border:1px solid var(--border2);}.btn-secondary:hover{background:var(--surface3);}
+  .btn-danger{background:var(--red-dim);color:var(--red);border:1px solid var(--red);}.btn-danger:hover{background:var(--red);color:#fff;}
+  .btn-success{background:var(--green-dim);color:var(--green);border:1px solid var(--green);}.btn-success:hover{background:var(--green);color:#fff;}
+  .btn-listing{background:#1b2a3a;color:var(--blue);border:1px solid var(--blue);}.btn-listing:hover{background:var(--blue);color:#fff;}
+  .btn-sm{padding:4px 7px;font-size:10px;}
+  .btn-icon{padding:8px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;color:var(--text2);font-size:16px;transition:all .15s;}
+  .btn-icon:hover{color:var(--text);background:var(--surface3);}
+  .search-bar{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;}
+  .search-input-wrap{flex:1;min-width:200px;position:relative;}
+  .search-input-wrap input{width:100%;background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius);padding:10px 38px 10px 12px;color:var(--text);font-family:var(--font);font-size:14px;outline:none;}
+  .search-input-wrap input:focus{border-color:var(--accent);}
+  .search-icon{position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--text3);pointer-events:none;}
+  select.filter-select{background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius);padding:10px 12px;color:var(--text);font-family:var(--font);font-size:14px;outline:none;cursor:pointer;}
+  select.filter-select:focus{border-color:var(--accent);}
+  .table-wrap{overflow-x:auto;border-radius:var(--radius);border:1px solid var(--border);}
+  table{width:100%;border-collapse:collapse;font-size:12px;}
+  thead{background:var(--surface2);}
+  th{padding:8px 6px;text-align:left;color:var(--text3);font-size:10px;font-weight:600;letter-spacing:.3px;text-transform:uppercase;white-space:nowrap;border-bottom:1px solid var(--border);}
+  td{padding:7px 6px;border-bottom:1px solid var(--border);vertical-align:middle;white-space:nowrap;max-width:120px;overflow:hidden;text-overflow:ellipsis;}
+  tr:last-child td{border-bottom:none;}
+  tr:hover td{background:rgba(255,255,255,.02);}
+  .tire-size{font-family:var(--font-mono);font-size:12px;font-weight:500;color:var(--accent);}
+  .easy-size{font-family:var(--font-mono);font-size:11px;color:var(--text3);}
+  .badge{display:inline-flex;align-items:center;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:600;}
+  .badge-listed{background:var(--green-dim);color:var(--green);}
+  .badge-not-listed{background:var(--surface3);color:var(--text2);}
+  .badge-pending{background:var(--orange-dim);color:var(--orange);}
+  .badge-please-list{background:#2a1a3a;color:#c084fc;border:1px solid #9333ea;animation:pulse-badge 2s ease-in-out infinite;}
+  @keyframes pulse-badge{0%,100%{opacity:1;}50%{opacity:.6;}}
+  .badge-sold{background:var(--blue-dim);color:var(--blue);}
+  .form-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;}
+  .form-group{display:flex;flex-direction:column;gap:6px;}
+  .form-group.full{grid-column:1/-1;}
+  label{font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;}
+  input[type=text],input[type=number],input[type=date],textarea,select{background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius);padding:10px 12px;color:var(--text);font-family:var(--font);font-size:14px;outline:none;transition:border-color .15s;width:100%;}
+  input:focus,textarea:focus,select:focus{border-color:var(--accent);}
+  textarea{resize:vertical;min-height:80px;}
+  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:1000;align-items:center;justify-content:center;padding:20px;}
+  .modal-overlay.open{display:flex;}
+  .modal{background:var(--surface);border:1px solid var(--border2);border-radius:12px;width:100%;max-width:600px;max-height:92vh;overflow-y:auto;}
+  .modal.modal-wide{max-width:780px;}
+  .modal-header{padding:20px 24px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+  .modal-title{font-family:var(--font-display);font-size:22px;letter-spacing:1px;color:var(--accent);}
+  .modal-body{padding:20px 24px;}
+  .modal-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;}
+  .close-btn{background:none;border:none;color:var(--text2);font-size:22px;cursor:pointer;line-height:1;}
+  .close-btn:hover{color:var(--text);}
+  .stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:16px;margin-bottom:24px;}
+  .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;}
+  .stat-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;font-weight:600;margin-bottom:6px;}
+  .stat-value{font-family:var(--font-display);font-size:32px;letter-spacing:1px;}
+  .stat-card.accent .stat-value{color:var(--accent);}
+  .stat-card.green .stat-value{color:var(--green);}
+  .stat-card.blue .stat-value{color:var(--blue);}
+  .month-block{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:16px;overflow:hidden;}
+  .month-header{padding:14px 20px;background:var(--surface2);display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none;}
+  .month-name{font-family:var(--font-display);font-size:20px;letter-spacing:1px;}
+  .month-totals{display:flex;gap:24px;font-size:13px;}
+  .month-total-item{text-align:right;}
+  .month-total-item .val{font-weight:600;}
+  .month-total-item .lbl{color:var(--text3);font-size:11px;}
+  .settings-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;max-width:520px;}
+  .settings-row{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border);gap:16px;}
+  .settings-row:last-child{border-bottom:none;}
+  .settings-label{font-weight:500;}
+  .settings-desc{font-size:12px;color:var(--text3);margin-top:2px;}
+  .empty-state{text-align:center;padding:60px 20px;color:var(--text3);}
+  .empty-state .icon{font-size:48px;margin-bottom:12px;}
+  .empty-state h3{font-size:18px;color:var(--text2);margin-bottom:8px;}
+  .page-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px;}
+  .page-title{font-family:var(--font-display);font-size:32px;letter-spacing:2px;}
+  .qty-badge{background:var(--surface3);border:1px solid var(--border2);border-radius:4px;padding:2px 5px;font-family:var(--font-mono);font-size:12px;font-weight:500;}
+  /* Listing */
+  .listing-output{background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);padding:20px;white-space:pre-wrap;font-size:14px;line-height:1.7;min-height:120px;}
+  .listing-loading{display:flex;align-items:center;gap:10px;color:var(--text3);padding:30px 20px;}
+  .spinner{width:18px;height:18px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  /* Import */
+  .import-step-title{font-family:var(--font-display);font-size:18px;color:var(--accent);letter-spacing:1px;margin-bottom:10px;margin-top:18px;}
+  .import-step-title:first-child{margin-top:0;}
+  .import-instructions{background:var(--surface2);border-left:3px solid var(--accent);padding:14px 16px;border-radius:0 var(--radius) var(--radius) 0;font-size:13px;line-height:1.9;color:var(--text2);margin-bottom:14px;}
+  .import-instructions strong{color:var(--text);}
+  .import-preview{max-height:220px;overflow-y:auto;background:var(--surface2);border-radius:var(--radius);padding:10px 14px;margin-top:10px;}
+  .import-row-ok{color:var(--green);font-size:12px;font-family:var(--font-mono);padding:3px 0;border-bottom:1px solid var(--border);}
+  .import-row-ok:last-child{border-bottom:none;}
+  .import-summary{padding:12px 16px;background:var(--green-dim);border-radius:var(--radius);color:var(--green);font-weight:600;margin-top:12px;}
+  @media(max-width:600px){
+    main{padding:16px;}
+    .month-totals{display:none;}
+    .page-title{font-size:24px;}
+    .tab{padding:12px 12px;font-size:12px;}
+    header{padding:0 14px;}
+    .logo span{display:none;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">TIRE TRACK <span id="header-shop-name">Inventory Manager</span></div>
+  <div class="header-actions">
+    <span id="sync-status" style="font-size:12px;color:var(--text3);margin-right:4px;">⟳ Loading…</span>
+    <button class="btn btn-secondary btn-sm" onclick="openImportModal()" style="font-size:13px;">📥 Import Sheet</button>
+    <button class="btn btn-primary" onclick="openAddModal()">+ Add Tires</button>
+    <button class="btn-icon" onclick="showPage('settings')" title="Settings">⚙</button>
+  </div>
+</header>
+
+<nav>
+  <button class="tab active" id="tab-inventory" onclick="showPage('inventory',this)">Inventory <span class="tab-badge" id="inv-count">0</span></button>
+  <button class="tab" id="tab-sold" onclick="showPage('sold',this)">Sold <span class="tab-badge" id="sold-count">0</span></button>
+  <button class="tab" id="tab-financials" onclick="showPage('financials',this)">Financials</button>
+  <button class="tab" id="tab-settings" onclick="showPage('settings',this)">Settings</button>
+</nav>
+
+<main>
+  <!-- INVENTORY -->
+  <div class="page active" id="page-inventory">
+    <div class="stats-grid" id="inv-stats"></div>
+    <div class="search-bar">
+      <div class="search-input-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="inv-search" placeholder="Search by size, brand, model… try '265' or '17' or 'Goodyear'" oninput="renderInventory()">
+      </div>
+      <select class="filter-select" id="inv-status-filter" onchange="renderInventory()">
+        <option value="">All Statuses</option>
+        <option value="PLEASE LIST">Please List</option>
+        <option value="LISTED">Listed</option>
+        <option value="NOT LISTED">Not Listed</option>
+        <option value="PENDING">Pending</option>
+      </select>
+      <select class="filter-select" id="inv-size-filter" onchange="renderInventory()">
+        <option value="">All Sizes</option>
+      </select>
+    </div>
+    <div class="table-wrap" id="inv-table-wrap">
+      <table>
+        <thead><tr>
+          <th>Qty</th><th>Tire Size</th><th>Load/Spd</th><th>Brand</th><th>Model</th>
+          <th>Condition</th><th>Age</th><th>Tread</th><th>Position</th><th>Status</th>
+          <th>Price (ea)</th><th>Total</th><th>Notes</th><th>Actions</th>
+        </tr></thead>
+        <tbody id="inv-tbody"></tbody>
+      </table>
+    </div>
+    <div class="empty-state" id="inv-empty" style="display:none;">
+      <div class="icon">🛞</div>
+      <h3>No tires in inventory</h3>
+      <p>Click "+ Add Tires" or "📥 Import Sheet" to get started</p>
+    </div>
+  </div>
+
+  <!-- SOLD -->
+  <div class="page" id="page-sold">
+    <div class="stats-grid" id="sold-stats"></div>
+    <div class="search-bar">
+      <div class="search-input-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="sold-search" placeholder="Search sold tires…" oninput="renderSold()">
+      </div>
+      <select class="filter-select" id="sold-month-filter" onchange="renderSold()">
+        <option value="">All Time</option>
+      </select>
+    </div>
+    <div class="table-wrap" id="sold-table-wrap">
+      <table>
+        <thead><tr>
+          <th>Date Sold</th><th>Qty</th><th>Tire Size</th><th>Brand</th><th>Model</th>
+          <th>Condition</th><th>Tread</th><th>Sale (ea)</th><th>Total</th>
+          <th>Our Cost</th><th>Profit</th><th>Commission</th><th>Buyer</th><th>Notes</th><th></th>
+        </tr></thead>
+        <tbody id="sold-tbody"></tbody>
+      </table>
+    </div>
+    <div class="empty-state" id="sold-empty" style="display:none;">
+      <div class="icon">💰</div><h3>No sold tires yet</h3>
+      <p>Mark tires as sold from the Inventory tab</p>
+    </div>
+  </div>
+
+  <!-- FINANCIALS -->
+  <div class="page" id="page-financials">
+    <div class="page-header"><div class="page-title">FINANCIALS</div></div>
+    <div class="stats-grid" id="fin-annual-stats"></div>
+    <div id="fin-months"></div>
+    <div class="empty-state" id="fin-empty" style="display:none;">
+      <div class="icon">📊</div><h3>No sales data yet</h3>
+    </div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="page" id="page-settings">
+    <div class="page-header"><div class="page-title">SETTINGS</div></div>
+    <div class="settings-card">
+      <div class="settings-row">
+        <div><div class="settings-label">Shop Name</div><div class="settings-desc">Shown in the header</div></div>
+        <input type="text" id="set-shop-name" placeholder="My Tire Shop" style="width:160px;">
+      </div>
+      <div class="settings-row">
+        <div><div class="settings-label">Commission %</div><div class="settings-desc">% of profit paid as commission</div></div>
+        <input type="number" id="set-commission" min="0" max="100" step="1" value="25" style="width:100px;">
+      </div>
+      <div class="settings-row">
+        <div><div class="settings-label">Commission Enabled</div><div class="settings-desc">Turn off if no commission applies</div></div>
+        <select id="set-commission-on" style="width:90px;background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius);padding:8px 10px;color:var(--text);font-family:var(--font);font-size:14px;">
+          <option value="1">Yes</option><option value="0">No</option>
+        </select>
+      </div>
+      <div class="settings-row">
+        <div><div class="settings-label">Mount &amp; Balance Note</div><div class="settings-desc">Shown on generated listings</div></div>
+        <input type="text" id="set-mount-note" style="width:240px;" placeholder="Shop can mount &amp; balance for extra charge">
+      </div>
+      <div style="margin-top:18px;display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
+        <button class="btn btn-secondary" onclick="exportData()">Export Backup (JSON)</button>
+        <button class="btn btn-danger btn-sm" onclick="importDataPrompt()">Import JSON Backup</button>
+        <button class="btn btn-secondary btn-sm" onclick="loadData()" style="margin-top:8px;">↺ Force Refresh</button>
+      </div>
+      <div id="settings-saved" style="display:none;color:var(--green);font-size:13px;margin-top:10px;">✓ Settings saved</div>
+    </div>
+  </div>
+</main>
+
+<!-- ADD / EDIT MODAL -->
+<div class="modal-overlay" id="modal-add">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-add-title">ADD TIRES</div>
+      <button class="close-btn" onclick="closeModal('modal-add')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <input type="hidden" id="edit-id">
+        <div class="form-group"><label>Qty</label><input type="number" id="f-qty" min="1" max="10" value="4"></div>
+        <div class="form-group"><label>Tire Size (e.g. 265/70R17)</label><input type="text" id="f-size" placeholder="265/70R17"></div>
+        <div class="form-group"><label>Load/Speed Rating</label><input type="text" id="f-load" placeholder="121/118Q"></div>
+        <div class="form-group"><label>Brand</label><input type="text" id="f-brand" placeholder="Goodyear" list="brand-list">
+          <datalist id="brand-list">
+            <option value="Goodyear"><option value="Michelin"><option value="Bridgestone"><option value="Firestone">
+            <option value="BF Goodrich"><option value="Toyo Tires"><option value="Yokohama"><option value="Kumho">
+            <option value="Nexen"><option value="Pirelli"><option value="Hercules"><option value="Westlake">
+            <option value="Milestar"><option value="Advanta"><option value="Aspen"><option value="Nitto">
+            <option value="Cooper"><option value="Hankook"><option value="Premiorri">
+          </datalist>
+        </div>
+        <div class="form-group"><label>Model</label><input type="text" id="f-model" placeholder="Wrangler AT"></div>
+        <div class="form-group"><label>Condition</label>
+          <select id="f-condition">
+            <option value="USED">Used</option><option value="TAKE OFFS">Take Offs</option>
+            <option value="NEW TAKE OFFS">New Take Offs</option><option value="NEW">New</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Age (MM/YY)</label><input type="text" id="f-age" placeholder="06/25"></div>
+        <div class="form-group"><label>Tread Depth (e.g. 8/32)</label><input type="text" id="f-tread" placeholder="8/32"></div>
+        <div class="form-group"><label>Position in Store</label><input type="text" id="f-position" placeholder="Outside - North Middle" list="pos-list">
+          <datalist id="pos-list">
+            <option value="Inside"><option value="Upstairs"><option value="Outside - North Top">
+            <option value="Outside - North Middle"><option value="Outside - North Ground">
+            <option value="Outside - South"><option value="Main Floor - First Isle Up Top">
+          </datalist>
+        </div>
+        <div class="form-group"><label>Status</label>
+          <select id="f-status">
+            <option value="NOT LISTED">Not Listed</option>
+            <option value="PLEASE LIST">Please List</option>
+            <option value="LISTED">Listed</option>
+            <option value="PENDING">Pending</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Sale Price (each) $</label><input type="number" id="f-price" min="0" step="0.01" placeholder="50.00"></div>
+        <div class="form-group"><label>Our Cost $</label><input type="number" id="f-cost" min="0" step="0.01" value="0" placeholder="0.00"></div>
+        <div class="form-group full"><label>Notes</label><textarea id="f-notes" placeholder="Any special notes about these tires…"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-add')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveTire()">Save to Inventory</button>
+    </div>
+  </div>
+</div>
+
+<!-- SELL MODAL -->
+<div class="modal-overlay" id="modal-sell">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">MARK AS SOLD</div>
+      <button class="close-btn" onclick="closeModal('modal-sell')">×</button>
+    </div>
+    <div class="modal-body">
+      <div id="sell-summary" style="background:var(--surface2);border-radius:var(--radius);padding:16px;margin-bottom:20px;font-size:14px;line-height:1.8;"></div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Qty Selling</label>
+          <input type="number" id="sell-qty" min="1" value="1" oninput="updateSellCalc()">
+          <div id="sell-qty-note" style="font-size:11px;color:var(--text3);margin-top:4px;"></div>
+        </div>
+        <div class="form-group"><label>Final Sale Price (each) $</label><input type="number" id="sell-price" min="0" step="0.01" oninput="updateSellCalc()"></div>
+        <div class="form-group"><label>Our Cost $</label><input type="number" id="sell-cost" min="0" step="0.01" value="0" oninput="updateSellCalc()"></div>
+        <div class="form-group"><label>Date Sold</label><input type="date" id="sell-date"></div>
+        <div class="form-group"><label>Buyer Name</label><input type="text" id="sell-buyer" placeholder="e.g. John, Pablo…"></div>
+      </div>
+      <div id="sell-calc" style="background:var(--surface2);border-radius:var(--radius);padding:16px;margin-top:16px;font-size:14px;"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-sell')">Cancel</button>
+      <button class="btn btn-success" onclick="confirmSell()">✓ Confirm Sale</button>
+    </div>
+  </div>
+</div>
+
+<!-- LISTING MODAL -->
+<div class="modal-overlay" id="modal-listing">
+  <div class="modal modal-wide">
+    <div class="modal-header">
+      <div class="modal-title">📋 FACEBOOK LISTING</div>
+      <button class="close-btn" onclick="closeModal('modal-listing')">×</button>
+    </div>
+    <div class="modal-body">
+      <div id="listing-content">
+        <div class="listing-loading"><div class="spinner"></div><span>Generating your listing…</span></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-listing')">Close</button>
+      <button class="btn btn-listing" onclick="regenListing()">↺ Regenerate</button>
+      <button class="btn btn-primary" onclick="copyListing()">📋 Copy to Clipboard</button>
+    </div>
+  </div>
+</div>
+
+<!-- IMPORT MODAL -->
+<div class="modal-overlay" id="modal-import">
+  <div class="modal modal-wide">
+    <div class="modal-header">
+      <div class="modal-title">📥 IMPORT FROM GOOGLE SHEETS</div>
+      <button class="close-btn" onclick="closeModal('modal-import')">×</button>
+    </div>
+    <div class="modal-body">
+      <!-- Sheet type toggle -->
+      <div style="display:flex;gap:8px;margin-bottom:18px;">
+        <button class="btn btn-primary" id="import-tab-inv" onclick="setImportTab('inventory')" style="flex:1;">📦 Inventory Sheet</button>
+        <button class="btn btn-secondary" id="import-tab-sold" onclick="setImportTab('sold')" style="flex:1;">💰 Sold Sheet</button>
+      </div>
+
+      <!-- INVENTORY instructions -->
+      <div id="import-instr-inventory">
+        <div class="import-step-title">STEP 1 — Copy your rows from Google Sheets</div>
+        <div class="import-instructions">
+          1. Open your <strong>Used Tires</strong> sheet → go to the <strong>ALL USED TIRES</strong> tab<br>
+          2. Click the row number of your <strong>first tire row</strong> (row 12), hold <strong>Shift</strong>, click the last tire row<br>
+          3. Press <strong>Ctrl+C</strong> to copy, then paste below<br><br>
+          Columns: <strong>Qty · Easy Size · Tire Size · Load/Speed · Brand · Model · Condition · Age · Tread Depth · Position · Status · Notes · Sale Each · Total</strong>
+        </div>
+      </div>
+
+      <!-- SOLD instructions -->
+      <div id="import-instr-sold" style="display:none;">
+        <div class="import-step-title">STEP 1 — Copy your rows from Google Sheets</div>
+        <div class="import-instructions">
+          1. Open your <strong>Used Tires</strong> sheet → go to the <strong>SOLD</strong> tab<br>
+          2. Click the row number of your <strong>first sold tire row</strong>, hold <strong>Shift</strong>, click the last sold row<br>
+          &nbsp;&nbsp;&nbsp;<em style="color:var(--text3);">Skip the "END OF MARCH" divider rows — or include them, the importer will ignore them automatically</em><br>
+          3. Press <strong>Ctrl+C</strong> to copy, then paste below<br><br>
+          Columns: <strong>Qty · Easy Size · Tire Size · Load/Speed · Brand · Model · Condition · Age · Tread Depth · Position · Status · Notes · Sale Each · Total · Our Cost · Profit · Commission · Monthly Total</strong>
+        </div>
+      </div>
+
+      <div class="import-step-title">STEP 2 — Paste here</div>
+      <textarea id="import-paste" style="min-height:130px;font-family:var(--font-mono);font-size:12px;" placeholder="Paste your copied rows here (Ctrl+V)…" oninput="previewImport()"></textarea>
+      <div id="import-preview-wrap" style="display:none;">
+        <div class="import-step-title">STEP 3 — Review &amp; confirm</div>
+        <div class="import-preview" id="import-preview"></div>
+        <div id="import-summary"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-import')">Cancel</button>
+      <button class="btn btn-primary" id="import-confirm-btn" onclick="confirmImport()" style="display:none;">✓ Import</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- EDIT SOLD MODAL -->
+<div class="modal-overlay" id="modal-edit-sold">
+  <div class="modal modal-wide">
+    <div class="modal-header">
+      <div class="modal-title">EDIT SOLD RECORD</div>
+      <button class="close-btn" onclick="closeModal('modal-edit-sold')">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="es-id">
+      <div class="form-grid">
+        <div class="form-group"><label>Date Sold</label><input type="date" id="es-date"></div>
+        <div class="form-group"><label>Buyer Name</label><input type="text" id="es-buyer" placeholder="e.g. John, Pablo…"></div>
+        <div class="form-group"><label>Qty</label><input type="number" id="es-qty" min="1" max="10"></div>
+        <div class="form-group"><label>Tire Size</label><input type="text" id="es-size"></div>
+        <div class="form-group"><label>Load/Speed</label><input type="text" id="es-load"></div>
+        <div class="form-group"><label>Brand</label><input type="text" id="es-brand"></div>
+        <div class="form-group"><label>Model</label><input type="text" id="es-model"></div>
+        <div class="form-group"><label>Condition</label><select id="es-condition"><option value="USED">Used</option><option value="TAKE OFFS">Take Offs</option><option value="NEW TAKE OFFS">New Take Offs</option><option value="NEW">New</option></select></div>
+        <div class="form-group"><label>Age (MM/YY)</label><input type="text" id="es-age"></div>
+        <div class="form-group"><label>Tread Depth</label><input type="text" id="es-tread"></div>
+        <div class="form-group"><label>Final Sale Price (each) $</label><input type="number" id="es-price" min="0" step="0.01" oninput="updateEditSoldCalc()"></div>
+        <div class="form-group"><label>Our Cost $</label><input type="number" id="es-cost" min="0" step="0.01" oninput="updateEditSoldCalc()"></div>
+        <div class="form-group full"><label>Notes</label><textarea id="es-notes" placeholder="Notes about the sale, buyer, condition, etc."></textarea></div>
+      </div>
+      <div id="es-calc" style="background:var(--surface2);border-radius:var(--radius);padding:16px;margin-top:4px;font-size:14px;"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger btn-sm" onclick="deleteSoldRecord()" style="margin-right:auto;">Delete Record</button>
+      <button class="btn btn-secondary" onclick="closeModal('modal-edit-sold')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveEditedSold()">Save Changes</button>
+    </div>
+  </div>
+</div>
+<!-- Firebase SDK (compat — works without a server) -->
+<script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
+<script>
+firebase.initializeApp({
+  apiKey: "AIzaSyBi2IbByOMPdihZZUSqo8lFxS79FC1A0GQ",
+  authDomain: "tire-track-sunrise-tire.firebaseapp.com",
+  projectId: "tire-track-sunrise-tire",
+  storageBucket: "tire-track-sunrise-tire.firebasestorage.app",
+  messagingSenderId: "401618704042",
+  appId: "1:401618704042:web:559467a7c9f1e3d3b3a2d3"
+});
+const db = firebase.firestore();
+
+// helper wrappers to match the modular API shape used below
+const doc = (db, ...path) => db.collection(path[0]).doc(path[1]);
+const getDoc = (ref) => ref.get();
+const setDoc = (ref, data) => ref.set(data);
+
+// ── SYNC STATUS UI ────────────────────────────────────────────────────────────
+function setSyncStatus(state, msg){
+  const el = document.getElementById('sync-status');
+  if(!el) return;
+  const colors = { synced:'var(--green)', saving:'var(--accent)', error:'var(--red)', loading:'var(--text3)' };
+  el.style.color = colors[state]||'var(--text3)';
+  el.textContent = msg;
+}
+
+// ── FIREBASE DATA LAYER ───────────────────────────────────────────────────────
+let inventory=[],sold=[],settings={};
+let editingId=null,sellingId=null,listingTireId=null,parsedImportRows=[];
+let saveTimer=null;
+
+async function loadData(){
+  setSyncStatus('loading','⟳ Loading…');
+  try{
+    const invSnap = await getDoc(doc(db,'tiretrack','inventory'));
+    const soldSnap = await getDoc(doc(db,'tiretrack','sold'));
+    const setSnap = await getDoc(doc(db,'tiretrack','settings'));
+    inventory = invSnap.exists() ? (invSnap.data().items||[]) : [];
+    sold = soldSnap.exists() ? (soldSnap.data().items||[]) : [];
+    settings = Object.assign(
+      {shopName:'',commissionPct:25,commissionOn:true,mountNote:'I work for a shop that can mount and balance for an extra charge.'},
+      setSnap.exists() ? setSnap.data() : {}
+    );
+    setSyncStatus('synced','✓ Synced');
+    renderInventory();
+    updateCounts();
+    if(settings.shopName) document.getElementById('header-shop-name').textContent=settings.shopName;
+  }catch(e){
+    console.error(e);
+    setSyncStatus('error','⚠ Load failed — check connection');
+    // fallback to localStorage if firebase fails
+    try{
+      inventory=JSON.parse(localStorage.getItem('tt_inventory')||'[]');
+      sold=JSON.parse(localStorage.getItem('tt_sold')||'[]');
+      settings=Object.assign({shopName:'',commissionPct:25,commissionOn:true,mountNote:'I work for a shop that can mount and balance for an extra charge.'},
+        JSON.parse(localStorage.getItem('tt_settings')||'{}'));
+      renderInventory(); updateCounts();
+    }catch(e2){}
+  }
+}
+
+async function saveData(){
+  setSyncStatus('saving','⟳ Saving…');
+  // also save to localStorage as backup
+  localStorage.setItem('tt_inventory',JSON.stringify(inventory));
+  localStorage.setItem('tt_sold',JSON.stringify(sold));
+  localStorage.setItem('tt_settings',JSON.stringify(settings));
+  // debounce firebase writes by 600ms to avoid hammering on rapid changes
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(async ()=>{
+    try{
+      await setDoc(doc(db,'tiretrack','inventory'),{items:inventory});
+      await setDoc(doc(db,'tiretrack','sold'),{items:sold});
+      await setDoc(doc(db,'tiretrack','settings'),settings);
+      setSyncStatus('synced','✓ Synced');
+    }catch(e){
+      console.error(e);
+      setSyncStatus('error','⚠ Save failed — data saved locally');
+    }
+  }, 600);
+}
+
+// kick off load
+loadData();
+function genId(){return Date.now().toString(36)+Math.random().toString(36).slice(2);}
+function toEasySize(s){return (s||'').replace(/[^0-9]/g,'');}
+function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+function showPage(name,tabEl){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  (tabEl||document.getElementById('tab-'+name))?.classList.add('active');
+  if(name==='inventory')renderInventory();
+  if(name==='sold')renderSold();
+  if(name==='financials')renderFinancials();
+  if(name==='settings')loadSettingsUI();
+}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+
+// ── ADD/EDIT ─────────────────────────────────────────────────────────────────
+function openAddModal(id){
+  editingId=id||null;
+  const g=x=>document.getElementById(x);
+  if(id){
+    const t=inventory.find(x=>x.id===id);
+    document.getElementById('modal-add-title').textContent='EDIT TIRES';
+    g('f-qty').value=t.qty;g('f-size').value=t.size;g('f-load').value=t.load;
+    g('f-brand').value=t.brand;g('f-model').value=t.model;g('f-condition').value=t.condition;
+    g('f-age').value=t.age;g('f-tread').value=t.tread;g('f-position').value=t.position;
+    g('f-status').value=t.status;g('f-price').value=t.price;g('f-cost').value=t.cost||0;g('f-notes').value=t.notes;
+  }else{
+    document.getElementById('modal-add-title').textContent='ADD TIRES';
+    ['f-size','f-load','f-brand','f-model','f-age','f-tread','f-position','f-notes','f-price'].forEach(x=>g(x).value='');
+    g('f-qty').value=4;g('f-cost').value=0;g('f-condition').value='USED';g('f-status').value='NOT LISTED';
+  }
+  document.getElementById('modal-add').classList.add('open');
+}
+function saveTire(){
+  const g=id=>document.getElementById(id).value.trim();
+  const size=g('f-size').toUpperCase();
+  if(!size){alert('Please enter a tire size.');return;}
+  const tire={
+    id:editingId||genId(),qty:parseInt(g('f-qty'))||1,size,easySize:toEasySize(size),
+    load:g('f-load').toUpperCase(),brand:g('f-brand'),model:g('f-model'),
+    condition:g('f-condition'),age:g('f-age'),tread:g('f-tread'),position:g('f-position'),
+    status:g('f-status'),price:parseFloat(document.getElementById('f-price').value)||0,
+    cost:parseFloat(document.getElementById('f-cost').value)||0,notes:g('f-notes'),
+    addedDate:editingId?(inventory.find(x=>x.id===editingId)||{}).addedDate:new Date().toISOString()
+  };
+  if(editingId){const i=inventory.findIndex(x=>x.id===editingId);if(i>=0)inventory[i]=tire;}
+  else inventory.push(tire);
+  saveData();closeModal('modal-add');renderInventory();updateCounts();
+}
+function deleteTire(id){
+  if(!confirm('Remove this tire from inventory?'))return;
+  inventory=inventory.filter(x=>x.id!==id);saveData();renderInventory();
+}
+
+// ── SELL ─────────────────────────────────────────────────────────────────────
+function openSellModal(id){
+  sellingId=id;
+  const t=inventory.find(x=>x.id===id);
+  document.getElementById('sell-summary').innerHTML=
+    `<strong style="color:var(--accent);font-size:16px;">${t.qty}x ${t.size}</strong><br>
+     ${escHtml(t.brand)} ${escHtml(t.model)} &nbsp;|&nbsp; ${t.condition} &nbsp;|&nbsp; Tread: ${t.tread}
+     ${t.notes?'<br><em style="color:var(--text3);">'+escHtml(t.notes)+'</em>':''}`;
+  document.getElementById('sell-qty').value=t.qty;
+  document.getElementById('sell-qty').max=t.qty;
+  document.getElementById('sell-price').value=t.price;
+  document.getElementById('sell-cost').value=t.cost||0;
+  document.getElementById('sell-date').value=new Date().toISOString().split('T')[0];
+  document.getElementById('sell-buyer').value='';
+  document.getElementById('modal-sell').classList.add('open');
+  updateSellCalc();
+}
+function updateSellCalc(){
+  const t=inventory.find(x=>x.id===sellingId);if(!t)return;
+  const sellQty=parseInt(document.getElementById('sell-qty').value)||1;
+  const price=parseFloat(document.getElementById('sell-price').value)||0;
+  const cost=parseFloat(document.getElementById('sell-cost').value)||0;
+  const remaining=t.qty-sellQty;
+  const note=document.getElementById('sell-qty-note');
+  if(remaining>0){
+    note.innerHTML=`<span style="color:var(--orange);">⚠ ${remaining} tire${remaining>1?'s':''} will remain in inventory</span>`;
+  } else {
+    note.innerHTML=`<span style="color:var(--green);">✓ Selling full set</span>`;
+  }
+  const total=price*sellQty,profit=total-cost;
+  const comm=settings.commissionOn?profit*(settings.commissionPct/100):0;
+  document.getElementById('sell-calc').innerHTML=
+    `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      <div><span style="color:var(--text3);">Revenue:</span> <strong>$${total.toFixed(2)}</strong></div>
+      <div><span style="color:var(--text3);">Our Cost:</span> <strong>$${cost.toFixed(2)}</strong></div>
+      <div><span style="color:var(--text3);">Profit:</span> <strong style="color:var(--green);">$${profit.toFixed(2)}</strong></div>
+      <div><span style="color:var(--text3);">Commission:</span> <strong style="color:var(--accent);">${settings.commissionOn?'$'+comm.toFixed(2)+' ('+settings.commissionPct+'%)':'N/A'}</strong></div>
+    </div>`;
+}
+function confirmSell(){
+  const t=inventory.find(x=>x.id===sellingId);if(!t)return;
+  const sellQty=Math.min(parseInt(document.getElementById('sell-qty').value)||1, t.qty);
+  const price=parseFloat(document.getElementById('sell-price').value)||0;
+  const cost=parseFloat(document.getElementById('sell-cost').value)||0;
+  const dateStr=document.getElementById('sell-date').value;
+  const buyer=document.getElementById('sell-buyer').value.trim();
+  const total=price*sellQty,profit=total-cost;
+  const comm=settings.commissionOn?profit*(settings.commissionPct/100):0;
+  const remaining=t.qty-sellQty;
+  const partialNote=remaining>0?`Partial sale (${sellQty} of ${t.qty} tires sold, ${remaining} kept in inventory)`:'';
+  const combinedNotes=[partialNote,t.notes].filter(Boolean).join(' — ');
+  sold.push({...t,soldId:genId(),qty:sellQty,
+    soldDate:dateStr||new Date().toISOString().split('T')[0],
+    buyer,finalPrice:price,finalCost:cost,revenue:total,profit,commission:comm,
+    notes:combinedNotes});
+  const remaining2=remaining;
+  if(remaining>0){
+    // keep leftover tires in inventory with updated qty
+    const idx=inventory.findIndex(x=>x.id===sellingId);
+    if(idx>=0) inventory[idx]={...t,qty:remaining};
+  } else {
+    inventory=inventory.filter(x=>x.id!==sellingId);
+  }
+  saveData();closeModal('modal-sell');renderInventory();updateCounts();
+  showPage('sold',document.getElementById('tab-sold'));
+}
+
+// ── LISTING GENERATOR ────────────────────────────────────────────────────────
+function openListingModal(id){
+  listingTireId=id;
+  document.getElementById('modal-listing').classList.add('open');
+  generateListing(id);
+}
+async function generateListing(id){
+  const t=inventory.find(x=>x.id===id);if(!t)return;
+  document.getElementById('listing-content').innerHTML=
+    `<div class="listing-loading"><div class="spinner"></div><span>Generating your Facebook listing…</span></div>`;
+  const mountNote=settings.mountNote||'I work for a shop that can mount and balance for an extra charge.';
+  const total=(t.price*t.qty).toFixed(2);
+  const per=t.price.toFixed(2);
+  const qtyEmoji=['','1️⃣','2️⃣','3️⃣','4️⃣','5️⃣'][t.qty]||t.qty+'x';
+  const prompt=`You write Facebook Marketplace listings for a tire shop selling used tires. Write one listing using exactly this format and style:
+
+${qtyEmoji} ${t.size} ${t.brand} ${t.model} – ${t.condition==='USED'?'Used':t.condition==='NEW TAKE OFFS'?'New Take Offs':t.condition==='TAKE OFFS'?'Take Offs':t.condition}
+Price: 💲 ${t.qty===1?'$'+per+' for the tire':'$'+total+' for the set ('+t.qty+' tires) 💲 $'+per+' per tire'}
+Note: this price is for the tires only. ${mountNote}
+
+Description:
+• [bullet: tire type and what it's best suited for — truck, SUV, off-road, highway, etc.]
+• [bullet: load rating/ply info from ${t.load||'N/A'} if meaningful, written naturally]
+• [bullet: condition details — even wear, solid tread, no plugs, no patches, no sidewall damage — adjust based on condition "${t.condition}"]
+• DOT: ${t.age} (calculate approximate age and mention naturally, e.g. "about 2 years old")
+
+Tread Depth:
+• ${t.tread} remaining (add a natural note about remaining life)
+${t.notes?'\nImportant note to work in: '+t.notes:''}
+
+[One closing line about value/deal]
+
+📍 Local pickup 💬 Message me if interested
+
+Tire details: Qty=${t.qty}, Size=${t.size}, Load/Speed=${t.load||'N/A'}, Brand=${t.brand}, Model=${t.model}, Condition=${t.condition}, Age=${t.age||'unknown'}, Tread=${t.tread||'unknown'}
+
+Output only the listing text. No extra commentary.`;
+
+  try{
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:prompt}]})
+    });
+    const data=await resp.json();
+    const text=data.content?.[0]?.text||'Could not generate listing.';
+    document.getElementById('listing-content').innerHTML=
+      `<div class="listing-output" id="listing-text">${escHtml(text)}</div>`;
+  }catch(e){
+    document.getElementById('listing-content').innerHTML=
+      `<div style="color:var(--red);padding:16px;">Error generating listing. Check your connection and try again.</div>`;
+  }
+}
+function regenListing(){if(listingTireId)generateListing(listingTireId);}
+function copyListing(){
+  const el=document.getElementById('listing-text');if(!el)return;
+  navigator.clipboard.writeText(el.textContent).then(()=>{
+    const btn=document.querySelector('#modal-listing .btn-primary');
+    const orig=btn.textContent;btn.textContent='✓ Copied!';
+    setTimeout(()=>btn.textContent=orig,1800);
+  });
+}
+
+// ── IMPORT ───────────────────────────────────────────────────────────────────
+let importTab='inventory'; // 'inventory' or 'sold'
+
+function setImportTab(tab){
+  importTab=tab;
+  document.getElementById('import-tab-inv').className='btn '+(tab==='inventory'?'btn-primary':'btn-secondary');
+  document.getElementById('import-tab-sold').className='btn '+(tab==='sold'?'btn-primary':'btn-secondary');
+  document.getElementById('import-instr-inventory').style.display=tab==='inventory'?'block':'none';
+  document.getElementById('import-instr-sold').style.display=tab==='sold'?'block':'none';
+  // re-parse if there's already pasted content
+  previewImport();
+}
+
+function openImportModal(){
+  document.getElementById('import-paste').value='';
+  document.getElementById('import-preview-wrap').style.display='none';
+  document.getElementById('import-confirm-btn').style.display='none';
+  parsedImportRows=[];
+  importTab='inventory';
+  setImportTab('inventory');
+  document.getElementById('modal-import').classList.add('open');
+}
+
+function previewImport(){
+  const raw=document.getElementById('import-paste').value.trim();
+  if(!raw){document.getElementById('import-preview-wrap').style.display='none';return;}
+  const lines=raw.split('\n').map(l=>l.split('\t'));
+  parsedImportRows=[];
+  let html='';
+
+  for(const cols of lines){
+    if(cols.length<3)continue;
+    const sizeCol=(cols[2]||'').trim();
+    // Skip section/divider rows — must look like a tire size
+    if(!sizeCol||!/[0-9R\/x]/i.test(sizeCol)||sizeCol.length<5)continue;
+    const qty=parseInt((cols[0]||'').replace(/[^0-9]/g,''))||1;
+    const size=sizeCol.toUpperCase();
+    if(!size||size.length<4)continue;
+
+    const load=(cols[3]||'').trim().toUpperCase();
+    const brand=(cols[4]||'').trim();
+    const model=(cols[5]||'').trim();
+    const condition=normCond((cols[6]||'').trim());
+    const age=(cols[7]||'').trim();
+    const tread=(cols[8]||'').trim();
+    const position=(cols[9]||'').trim();
+    const statusRaw=(cols[10]||'').trim().toUpperCase();
+    const notes=(cols[11]||'').trim();
+    const priceEach=parseFloat((cols[12]||'').replace(/[^0-9.]/g,''))||0;
+
+    if(importTab==='sold'){
+      // Sold sheet extra columns: col 14=Our Cost, col 15=Profit, col 16=Commission, col 17=Monthly Total, col 18=Date
+      const costRaw=parseFloat((cols[14]||'').replace(/[^0-9.]/g,''))||0;
+      const profitRaw=parseFloat((cols[15]||'').replace(/[^0-9.-]/g,''))||0;
+      const commRaw=parseFloat((cols[16]||'').replace(/[^0-9.]/g,''))||0;
+      const dateRaw=(cols[18]||'').trim();
+      const soldDate=parseSheetDate(dateRaw);
+      const revenue=priceEach*qty;
+      const profit=profitRaw||revenue-costRaw;
+      const commission=commRaw||(settings.commissionOn?profit*(settings.commissionPct/100):0);
+      const row={
+        id:genId(),soldId:genId(),qty,size,easySize:toEasySize(size),load,brand,model,
+        condition,age,tread,position,status:'SOLD',notes,
+        price:priceEach,cost:costRaw,
+        finalPrice:priceEach,finalCost:costRaw,
+        revenue,profit,commission,
+        soldDate,
+        addedDate:new Date().toISOString()
+      };
+      parsedImportRows.push(row);
+      html+=`<div class="import-row-ok">${qty}x ${size} — ${brand} ${model} — ${soldDate} — Rev: $${revenue.toFixed(2)} | Profit: $${profit.toFixed(2)} | Comm: $${commission.toFixed(2)}</div>`;
+    } else {
+      const status=normStatus(statusRaw);
+      const row={id:genId(),qty,size,easySize:toEasySize(size),load,brand,model,
+        condition,age,tread,position,status,notes,price:priceEach,cost:0,addedDate:new Date().toISOString()};
+      parsedImportRows.push(row);
+      html+=`<div class="import-row-ok">${qty}x ${size} — ${brand} ${model} — ${condition} — $${priceEach.toFixed(2)}</div>`;
+    }
+  }
+
+  const preview=document.getElementById('import-preview');
+  preview.innerHTML=html||'<div style="color:var(--text3);font-size:13px;padding:8px;">No valid rows found yet.</div>';
+  if(parsedImportRows.length){
+    const dest=importTab==='sold'?'sold history':'inventory';
+    document.getElementById('import-summary').innerHTML=
+      `<div class="import-summary">✓ Found ${parsedImportRows.length} tire sets → going into <strong>${dest}</strong></div>`;
+    document.getElementById('import-confirm-btn').textContent='✓ Import '+parsedImportRows.length+' '+(importTab==='sold'?'Sold Records':'Tires');
+    document.getElementById('import-confirm-btn').style.display='inline-flex';
+  }else{
+    document.getElementById('import-summary').innerHTML=
+      `<div style="color:var(--orange);padding:12px;font-size:13px;">No valid tire rows detected yet. Make sure you copied the data rows (not headers or divider rows).</div>`;
+    document.getElementById('import-confirm-btn').style.display='none';
+  }
+  document.getElementById('import-preview-wrap').style.display='block';
+}
+
+function parseSheetDate(s){
+  if(!s)return new Date().toISOString().split('T')[0];
+  // Handle common formats: M/D/YYYY, MM/DD/YYYY, YYYY-MM-DD, M-D-YYYY
+  const clean=s.trim();
+  // Already ISO format
+  if(/^\d{4}-\d{2}-\d{2}$/.test(clean))return clean;
+  // MM/DD/YYYY or M/D/YYYY
+  const slash=clean.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+  if(slash){
+    const y=slash[3].length===2?'20'+slash[3]:slash[3];
+    const m=slash[1].padStart(2,'0');
+    const d=slash[2].padStart(2,'0');
+    return`${y}-${m}-${d}`;
+  }
+  // Try native parse as fallback
+  const d=new Date(clean);
+  if(!isNaN(d))return d.toISOString().split('T')[0];
+  return new Date().toISOString().split('T')[0];
+}
+function normCond(s){
+  const u=s.toUpperCase();
+  if(u.includes('NEW TAKE')||u.includes('NEW TAKEOFF'))return'NEW TAKE OFFS';
+  if(u.includes('TAKE OFF')||u.includes('TAKEOFF'))return'TAKE OFFS';
+  if(u==='NEW')return'NEW';
+  return'USED';
+}
+function normStatus(s){
+  const u=s.toUpperCase();
+  if(u.includes('PLEASE'))return'PLEASE LIST';
+  if(u.includes('LISTED'))return'LISTED';
+  if(u.includes('PENDING'))return'PENDING';
+  return'NOT LISTED';
+}
+
+function confirmImport(){
+  if(!parsedImportRows.length)return;
+  if(importTab==='sold'){
+    parsedImportRows.forEach(r=>sold.push(r));
+    saveData();closeModal('modal-import');renderSold();updateCounts();
+    showPage('sold',document.getElementById('tab-sold'));
+    alert('✓ Imported '+parsedImportRows.length+' sold records into Sold history!');
+  }else{
+    parsedImportRows.forEach(r=>inventory.push(r));
+    saveData();closeModal('modal-import');renderInventory();updateCounts();
+    alert('✓ Imported '+parsedImportRows.length+' tire sets into inventory!');
+  }
+}
+
+// ── RENDER INVENTORY ─────────────────────────────────────────────────────────
+function renderInventory(){
+  const q=(document.getElementById('inv-search').value||'').toLowerCase();
+  const sf=document.getElementById('inv-status-filter').value;
+  const szf=document.getElementById('inv-size-filter').value;
+  let data=inventory.filter(t=>{
+    const str=[t.easySize,t.size,t.brand,t.model,t.condition,t.position,t.notes,t.load].join(' ').toLowerCase();
+    return(!q||str.includes(q))&&(!sf||t.status===sf)&&(!szf||t.size===szf);
+  });
+  const sel=document.getElementById('inv-size-filter');const curSz=sel.value;
+  const sizes=[...new Set(inventory.map(t=>t.size))].sort();
+  sel.innerHTML='<option value="">All Sizes</option>'+sizes.map(s=>`<option value="${s}"${s===curSz?' selected':''}>${s}</option>`).join('');
+  document.getElementById('inv-tbody').innerHTML=data.map(t=>`<tr>
+    <td style="width:24px;"><span class="qty-badge">${t.qty}</span></td>
+    <td style="width:78px;"><div class="tire-size">${escHtml(t.size)}</div><div class="easy-size">${t.easySize}</div></td>
+    <td style="width:52px;color:var(--text3);font-family:var(--font-mono);font-size:10px;overflow:hidden;text-overflow:ellipsis;">${escHtml(t.load)}</td>
+    <td style="width:62px;overflow:hidden;text-overflow:ellipsis;"><strong>${escHtml(t.brand)}</strong></td>
+    <td style="width:75px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;">${escHtml(t.model)}</td>
+    <td style="width:58px;font-size:10px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;">${t.condition}</td>
+    <td style="width:38px;color:var(--text3);font-size:11px;">${t.age}</td>
+    <td style="width:40px;font-family:var(--font-mono);font-size:11px;">${t.tread}</td>
+    <td style="width:40px;font-size:10px;color:var(--text3);overflow:hidden;text-overflow:ellipsis;" title="${escHtml(t.position)}">${escHtml(t.position)}</td>
+    <td style="width:66px;">${statusBadge(t.status)}</td>
+    <td style="width:50px;color:var(--accent);font-family:var(--font-mono);font-size:11px;">$${t.price.toFixed(2)}</td>
+    <td style="width:50px;color:var(--green);font-family:var(--font-mono);font-size:11px;">$${(t.price*t.qty).toFixed(2)}</td>
+    <td style="width:72px;font-size:10px;color:var(--text3);overflow:hidden;text-overflow:ellipsis;">${escHtml(t.notes||'')}</td>
+    <td style="width:116px;"><div style="display:flex;gap:3px;">
+      <button class="btn btn-listing btn-sm" onclick="openListingModal('${t.id}')" title="Generate FB listing">📋</button>
+      <button class="btn btn-secondary btn-sm" onclick="openAddModal('${t.id}')">Edit</button>
+      <button class="btn btn-success btn-sm" onclick="openSellModal('${t.id}')">Sell</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteTire('${t.id}')">✕</button>
+    </div></td>
+  </tr>`).join('');
+  const empty=document.getElementById('inv-empty');
+  const wrap=document.getElementById('inv-table-wrap');
+  empty.style.display=data.length?'none':'block';
+  wrap.style.display=data.length?'block':'none';
+  const listed=inventory.filter(x=>x.status==='LISTED').length;
+  const pleaseList=inventory.filter(x=>x.status==='PLEASE LIST').length;
+  const pending=inventory.filter(x=>x.status==='PENDING').length;
+  const value=inventory.reduce((a,t)=>a+t.price*t.qty,0);
+  document.getElementById('inv-stats').innerHTML=`
+    <div class="stat-card"><div class="stat-label">Sets in Stock</div><div class="stat-value">${inventory.length}</div></div>
+    <div class="stat-card green"><div class="stat-label">Listed</div><div class="stat-value">${listed}</div></div>
+    <div class="stat-card"><div class="stat-label">Please List</div><div class="stat-value" style="color:#c084fc;">${pleaseList}</div></div>
+    <div class="stat-card"><div class="stat-label">Pending</div><div class="stat-value" style="color:var(--orange);">${pending}</div></div>
+    <div class="stat-card accent"><div class="stat-label">Inventory Value</div><div class="stat-value">$${Math.round(value).toLocaleString()}</div></div>`;
+  updateCounts();
+}
+function statusBadge(s){
+  const m={'LISTED':'badge-listed','NOT LISTED':'badge-not-listed','PENDING':'badge-pending','SOLD':'badge-sold','PLEASE LIST':'badge-please-list'};
+  return`<span class="badge ${m[s]||'badge-not-listed'}">${s}</span>`;
+}
+
+// ── RENDER SOLD ──────────────────────────────────────────────────────────────
+function renderSold(){
+  const q=(document.getElementById('sold-search').value||'').toLowerCase();
+  const sel=document.getElementById('sold-month-filter');
+  const cur=sel.value; // capture before rebuild
+  const months=[...new Set(sold.map(t=>(t.soldDate||'').slice(0,7)))].sort().reverse();
+  sel.innerHTML='<option value="">All Time</option>'+months.map(m=>`<option value="${m}"${m===cur?' selected':''}>${fmtMonth(m)}</option>`).join('');
+  const activeMonth=sel.value; // use after rebuild so selection is preserved
+  let data=sold.filter(t=>{
+    const str=[t.size,t.brand,t.model,t.condition,t.buyer||''].join(' ').toLowerCase();
+    return(!q||str.includes(q))&&(!activeMonth||(t.soldDate||'').startsWith(activeMonth));
+  }).sort((a,b)=>(b.soldDate||'').localeCompare(a.soldDate||''));
+  document.getElementById('sold-tbody').innerHTML=data.map(t=>`<tr>
+    <td style="color:var(--text3);">${fmtDate(t.soldDate)}</td>
+    <td><span class="qty-badge">${t.qty}</span></td>
+    <td><div class="tire-size">${escHtml(t.size)}</div></td>
+    <td><strong>${escHtml(t.brand)}</strong></td>
+    <td style="color:var(--text2);">${escHtml(t.model)}</td>
+    <td style="font-size:12px;">${t.condition}</td>
+    <td style="font-family:var(--font-mono);">${t.tread}</td>
+    <td style="color:var(--accent);font-family:var(--font-mono);">$${(t.finalPrice||0).toFixed(2)}</td>
+    <td style="color:var(--green);font-family:var(--font-mono);">$${(t.revenue||0).toFixed(2)}</td>
+    <td style="color:var(--text3);font-family:var(--font-mono);">$${(t.finalCost||0).toFixed(2)}</td>
+    <td style="color:${(t.profit||0)>=0?'var(--green)':'var(--red)'};font-family:var(--font-mono);">$${(t.profit||0).toFixed(2)}</td>
+    <td style="color:var(--accent);font-family:var(--font-mono);">$${(t.commission||0).toFixed(2)}</td>
+    <td style="font-size:12px;color:var(--blue);">${escHtml(t.buyer||'')}</td>
+    <td style="font-size:11px;color:var(--text3);max-width:150px;white-space:normal;">${escHtml(t.notes||'')}</td>
+    <td><button class="btn btn-secondary btn-sm" onclick="openEditSoldModal('${t.soldId||t.id}')">Edit</button></td>
+  </tr>`).join('');
+  document.getElementById('sold-empty').style.display=data.length?'none':'block';
+  document.getElementById('sold-table-wrap').style.display=data.length?'block':'none';
+  // Stats
+  const tRev=sold.reduce((a,t)=>a+(t.revenue||0),0);
+  const tProf=sold.reduce((a,t)=>a+(t.profit||0),0);
+  const tComm=sold.reduce((a,t)=>a+(t.commission||0),0);
+  document.getElementById('sold-stats').innerHTML=`
+    <div class="stat-card"><div class="stat-label">Total Sets Sold</div><div class="stat-value">${sold.length}</div></div>
+    <div class="stat-card accent"><div class="stat-label">Total Revenue</div><div class="stat-value">$${Math.round(tRev).toLocaleString()}</div></div>
+    <div class="stat-card green"><div class="stat-label">Total Profit</div><div class="stat-value">$${Math.round(tProf).toLocaleString()}</div></div>
+    <div class="stat-card blue"><div class="stat-label">Total Commission</div><div class="stat-value">$${Math.round(tComm).toLocaleString()}</div></div>`;
+  updateCounts();
+}
+
+// ── FINANCIALS ───────────────────────────────────────────────────────────────
+function renderFinancials(){
+  if(!sold.length){
+    document.getElementById('fin-annual-stats').innerHTML='';
+    document.getElementById('fin-months').innerHTML='';
+    document.getElementById('fin-empty').style.display='block';return;
+  }
+  document.getElementById('fin-empty').style.display='none';
+  const tRev=sold.reduce((a,t)=>a+(t.revenue||0),0);
+  const tProf=sold.reduce((a,t)=>a+(t.profit||0),0);
+  const tComm=sold.reduce((a,t)=>a+(t.commission||0),0);
+  document.getElementById('fin-annual-stats').innerHTML=`
+    <div class="stat-card"><div class="stat-label">Sets Sold (All Time)</div><div class="stat-value">${sold.length}</div></div>
+    <div class="stat-card accent"><div class="stat-label">Total Revenue</div><div class="stat-value">$${Math.round(tRev).toLocaleString()}</div></div>
+    <div class="stat-card green"><div class="stat-label">Total Profit</div><div class="stat-value">$${Math.round(tProf).toLocaleString()}</div></div>
+    <div class="stat-card blue"><div class="stat-label">Total Commission</div><div class="stat-value">$${Math.round(tComm).toLocaleString()}</div></div>`;
+  const byMonth={};
+  sold.forEach(t=>{const m=(t.soldDate||'').slice(0,7);if(m)(byMonth[m]=byMonth[m]||[]).push(t);});
+  document.getElementById('fin-months').innerHTML=Object.keys(byMonth).sort().reverse().map(m=>{
+    const tires=byMonth[m];
+    const rev=tires.reduce((a,t)=>a+(t.revenue||0),0);
+    const prof=tires.reduce((a,t)=>a+(t.profit||0),0);
+    const comm=tires.reduce((a,t)=>a+(t.commission||0),0);
+    return`<div class="month-block">
+      <div class="month-header" onclick="const b=this.nextElementSibling;const open=b.style.display!=='none';b.style.display=open?'none':'block';this.querySelector('.chevron').style.transform=open?'rotate(-90deg)':'rotate(0deg)'">
+        <div class="month-name">${fmtMonth(m)} <span style="font-family:var(--font);font-size:13px;color:var(--text3);font-weight:400;">${tires.length} sale${tires.length!==1?'s':''}</span> <span class="chevron" style="font-size:12px;color:var(--text3);transition:transform .2s;display:inline-block;">▾</span></div>
+        <div class="month-totals">
+          <div class="month-total-item"><div class="val" style="color:var(--accent);">$${rev.toFixed(2)}</div><div class="lbl">Revenue</div></div>
+          <div class="month-total-item"><div class="val" style="color:var(--green);">$${prof.toFixed(2)}</div><div class="lbl">Profit</div></div>
+          <div class="month-total-item"><div class="val" style="color:var(--blue);">$${comm.toFixed(2)}</div><div class="lbl">Commission</div></div>
+        </div>
+      </div>
+      <div class="month-body">
+        <div class="table-wrap" style="border:none;border-radius:0;">
+          <table><thead><tr><th>Date</th><th>Qty</th><th>Size</th><th>Tire</th><th>Revenue</th><th>Profit</th><th>Commission</th></tr></thead>
+          <tbody>${tires.sort((a,b)=>(b.soldDate||'').localeCompare(a.soldDate||'')).map(t=>`<tr>
+            <td style="color:var(--text3);">${fmtDate(t.soldDate)}</td>
+            <td><span class="qty-badge">${t.qty}</span></td>
+            <td><span class="tire-size">${escHtml(t.size)}</span></td>
+            <td style="color:var(--text2);">${escHtml(t.brand)} ${escHtml(t.model)}</td>
+            <td style="color:var(--accent);font-family:var(--font-mono);">$${(t.revenue||0).toFixed(2)}</td>
+            <td style="color:var(--green);font-family:var(--font-mono);">$${(t.profit||0).toFixed(2)}</td>
+            <td style="color:var(--blue);font-family:var(--font-mono);">$${(t.commission||0).toFixed(2)}</td>
+          </tr>`).join('')}</tbody></table>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── SETTINGS ─────────────────────────────────────────────────────────────────
+function loadSettingsUI(){
+  document.getElementById('set-shop-name').value=settings.shopName||'';
+  document.getElementById('set-commission').value=settings.commissionPct;
+  document.getElementById('set-commission-on').value=settings.commissionOn?'1':'0';
+  document.getElementById('set-mount-note').value=settings.mountNote||'';
+}
+function saveSettings(){
+  settings.shopName=document.getElementById('set-shop-name').value.trim();
+  settings.commissionPct=parseFloat(document.getElementById('set-commission').value)||25;
+  settings.commissionOn=document.getElementById('set-commission-on').value==='1';
+  settings.mountNote=document.getElementById('set-mount-note').value.trim();
+  saveData();
+  if(settings.shopName)document.getElementById('header-shop-name').textContent=settings.shopName;
+  const el=document.getElementById('settings-saved');el.style.display='block';setTimeout(()=>el.style.display='none',2000);
+}
+function exportData(){
+  const blob=new Blob([JSON.stringify({inventory,sold,settings},null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='tire-inventory-backup.json';a.click();
+}
+function importDataPrompt(){
+  const input=document.createElement('input');input.type='file';input.accept='.json';
+  input.onchange=e=>{
+    const r=new FileReader();
+    r.onload=ev=>{
+      try{
+        const d=JSON.parse(ev.target.result);
+        if(confirm('This will replace ALL current data. Continue?')){
+          inventory=d.inventory||[];sold=d.sold||[];
+          settings=Object.assign({shopName:'',commissionPct:25,commissionOn:true,mountNote:''},d.settings||{});
+          saveData();renderInventory();loadSettingsUI();alert('Imported successfully!');
+        }
+      }catch(e){alert('Invalid file.');}
+    };
+    r.readAsText(e.target.files[0]);
+  };
+  input.click();
+}
+
+
+// ── EDIT SOLD ────────────────────────────────────────────────────────────────
+function openEditSoldModal(id){
+  const t=sold.find(x=>(x.soldId||x.id)===id);if(!t)return;
+  document.getElementById('es-id').value=id;
+  document.getElementById('es-date').value=t.soldDate||'';
+  document.getElementById('es-buyer').value=t.buyer||'';
+  document.getElementById('es-qty').value=t.qty;
+  document.getElementById('es-size').value=t.size;
+  document.getElementById('es-load').value=t.load||'';
+  document.getElementById('es-brand').value=t.brand;
+  document.getElementById('es-model').value=t.model;
+  document.getElementById('es-condition').value=t.condition;
+  document.getElementById('es-age').value=t.age||'';
+  document.getElementById('es-tread').value=t.tread||'';
+  document.getElementById('es-price').value=t.finalPrice||t.price||0;
+  document.getElementById('es-cost').value=t.finalCost||t.cost||0;
+  document.getElementById('es-notes').value=t.notes||'';
+  document.getElementById('modal-edit-sold').classList.add('open');
+  updateEditSoldCalc();
+}
+function updateEditSoldCalc(){
+  const qty=parseInt(document.getElementById('es-qty').value)||1;
+  const price=parseFloat(document.getElementById('es-price').value)||0;
+  const cost=parseFloat(document.getElementById('es-cost').value)||0;
+  const revenue=price*qty,profit=revenue-cost;
+  const comm=settings.commissionOn?profit*(settings.commissionPct/100):0;
+  document.getElementById('es-calc').innerHTML=
+    `<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;font-size:13px;">
+      <div><span style="color:var(--text3);">Revenue:</span> <strong style="color:var(--text);">$${revenue.toFixed(2)}</strong></div>
+      <div><span style="color:var(--text3);">Profit:</span> <strong style="color:var(--green);">$${profit.toFixed(2)}</strong></div>
+      <div><span style="color:var(--text3);">Commission:</span> <strong style="color:var(--accent);">${settings.commissionOn?"$"+comm.toFixed(2)+" ("+settings.commissionPct+"%)":"N/A"}</strong></div>
+    </div>`;
+}
+function saveEditedSold(){
+  const id=document.getElementById('es-id').value;
+  const idx=sold.findIndex(x=>(x.soldId||x.id)===id);if(idx<0)return;
+  const qty=parseInt(document.getElementById('es-qty').value)||1;
+  const price=parseFloat(document.getElementById('es-price').value)||0;
+  const cost=parseFloat(document.getElementById('es-cost').value)||0;
+  const size=document.getElementById('es-size').value.trim().toUpperCase();
+  const revenue=price*qty,profit=revenue-cost;
+  const comm=settings.commissionOn?profit*(settings.commissionPct/100):0;
+  sold[idx]={
+    ...sold[idx],
+    soldDate:document.getElementById('es-date').value,
+    buyer:document.getElementById('es-buyer').value.trim(),
+    qty,size,easySize:toEasySize(size),
+    load:document.getElementById('es-load').value.trim().toUpperCase(),
+    brand:document.getElementById('es-brand').value.trim(),
+    model:document.getElementById('es-model').value.trim(),
+    condition:document.getElementById('es-condition').value,
+    age:document.getElementById('es-age').value.trim(),
+    tread:document.getElementById('es-tread').value.trim(),
+    finalPrice:price,finalCost:cost,revenue,profit,commission:comm,
+    notes:document.getElementById('es-notes').value.trim(),
+  };
+  saveData();closeModal('modal-edit-sold');renderSold();
+}
+function deleteSoldRecord(){
+  const id=document.getElementById('es-id').value;
+  if(!confirm('Remove this sold record? This cannot be undone.'))return;
+  sold=sold.filter(x=>(x.soldId||x.id)!==id);
+  saveData();closeModal('modal-edit-sold');renderSold();updateCounts();
+}
+// ── UTILS ─────────────────────────────────────────────────────────────────────
+function updateCounts(){
+  document.getElementById('inv-count').textContent=inventory.length;
+  document.getElementById('sold-count').textContent=sold.length;
+}
+function fmtDate(s){
+  if(!s)return'';const d=new Date(s+'T12:00:00');
+  return d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+}
+function fmtMonth(s){
+  if(!s)return'';const[y,m]=s.split('-');
+  return['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][parseInt(m)-1]+' '+y;
+}
+document.querySelectorAll('.modal-overlay').forEach(el=>el.addEventListener('click',e=>{if(e.target===el)el.classList.remove('open');}));
+
+// init handled by loadData() above
+</script>
+</body>
+</html>
