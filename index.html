@@ -522,11 +522,11 @@ async function loadData(){
     const invSnap = await getDoc(doc(db,'tiretrack','inventory'));
     const soldSnap = await getDoc(doc(db,'tiretrack','sold'));
     const setSnap = await getDoc(doc(db,'tiretrack','settings'));
-    inventory = invSnap.exists() ? (invSnap.data().items||[]) : [];
-    sold = soldSnap.exists() ? (soldSnap.data().items||[]) : [];
+    inventory = invSnap.exists ? (invSnap.data().items||[]) : [];
+    sold = soldSnap.exists ? (soldSnap.data().items||[]) : [];
     settings = Object.assign(
       {shopName:'',commissionPct:25,commissionOn:true,mountNote:'I work for a shop that can mount and balance for an extra charge.'},
-      setSnap.exists() ? setSnap.data() : {}
+      setSnap.exists ? setSnap.data() : {}
     );
     setSyncStatus('synced','✓ Synced');
     renderInventory();
