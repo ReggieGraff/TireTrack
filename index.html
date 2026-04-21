@@ -37,7 +37,7 @@
   .btn-secondary{background:var(--surface2);color:var(--text);border:1px solid var(--border2);}.btn-secondary:hover{background:var(--surface3);}
   .btn-danger{background:var(--red-dim);color:var(--red);border:1px solid var(--red);}.btn-danger:hover{background:var(--red);color:#fff;}
   .btn-success{background:var(--green-dim);color:var(--green);border:1px solid var(--green);}.btn-success:hover{background:var(--green);color:#fff;}
-  .btn-listing{background:#1b2a3a;color:var(--blue);border:1px solid var(--blue);}.btn-listing:hover{background:var(--blue);color:#fff;}
+  .btn-warning{background:var(--orange-dim);color:var(--orange);border:1px solid var(--orange);}.btn-warning:hover{background:var(--orange);color:#fff;}
   .btn-sm{padding:4px 7px;font-size:10px;}
   .btn-icon{padding:8px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;color:var(--text2);font-size:16px;transition:all .15s;}
   .btn-icon:hover{color:var(--text);background:var(--surface3);}
@@ -106,9 +106,7 @@
   .page-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px;}
   .page-title{font-family:var(--font-display);font-size:32px;letter-spacing:2px;}
   .qty-badge{background:var(--surface3);border:1px solid var(--border2);border-radius:4px;padding:2px 5px;font-family:var(--font-mono);font-size:12px;font-weight:500;}
-  /* Listing */
-  .listing-output{background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);padding:20px;white-space:pre-wrap;font-size:14px;line-height:1.7;min-height:120px;}
-  .listing-loading{display:flex;align-items:center;gap:10px;color:var(--text3);padding:30px 20px;}
+
   .spinner{width:18px;height:18px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0;}
   @keyframes spin{to{transform:rotate(360deg);}}
   /* Import */
@@ -167,7 +165,6 @@
   <div class="logo">TIRE TRACK <span id="header-shop-name">Inventory Manager</span></div>
   <div class="header-actions">
     <span id="sync-status" style="font-size:12px;color:var(--text3);margin-right:4px;">⟳ Loading…</span>
-    <button class="btn btn-secondary btn-sm" onclick="openImportModal()" style="font-size:13px;">📥 Import Sheet</button>
     <button class="btn btn-primary" onclick="openAddModal()">+ Add Tires</button>
     <button class="btn-icon" onclick="showPage('settings')" title="Settings">⚙</button>
     <button class="btn-icon" onclick="doLogout()" title="Sign Out" style="font-size:13px;">⎋</button>
@@ -200,6 +197,9 @@
       <select class="filter-select" id="inv-size-filter" onchange="renderInventory()">
         <option value="">All Sizes</option>
       </select>
+      <select class="filter-select" id="inv-year-filter" onchange="renderInventory()">
+        <option value="">All Years</option>
+      </select>
     </div>
     <div class="table-wrap" id="inv-table-wrap">
       <table>
@@ -214,7 +214,7 @@
     <div class="empty-state" id="inv-empty" style="display:none;">
       <div class="icon">🛞</div>
       <h3>No tires in inventory</h3>
-      <p>Click "+ Add Tires" or "📥 Import Sheet" to get started</p>
+      <p>Click "+ Add Tires" or go to Settings → Import Sheet to get started</p>
     </div>
   </div>
 
@@ -274,12 +274,10 @@
           <option value="1">Yes</option><option value="0">No</option>
         </select>
       </div>
-      <div class="settings-row">
-        <div><div class="settings-label">Mount &amp; Balance Note</div><div class="settings-desc">Shown on generated listings</div></div>
-        <input type="text" id="set-mount-note" style="width:240px;" placeholder="Shop can mount &amp; balance for extra charge">
-      </div>
+
       <div style="margin-top:18px;display:flex;gap:10px;flex-wrap:wrap;">
         <button class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
+        <button class="btn btn-secondary" onclick="openImportModal()">📥 Import Sheet</button>
         <button class="btn btn-secondary" onclick="exportData()">Export Backup (JSON)</button>
         <button class="btn btn-danger btn-sm" onclick="importDataPrompt()">Import JSON Backup</button>
         <button class="btn btn-secondary btn-sm" onclick="loadData()" style="margin-top:8px;">↺ Force Refresh</button>
@@ -376,25 +374,7 @@
   </div>
 </div>
 
-<!-- LISTING MODAL -->
-<div class="modal-overlay" id="modal-listing">
-  <div class="modal modal-wide">
-    <div class="modal-header">
-      <div class="modal-title">📋 FACEBOOK LISTING</div>
-      <button class="close-btn" onclick="closeModal('modal-listing')">×</button>
-    </div>
-    <div class="modal-body">
-      <div id="listing-content">
-        <div class="listing-loading"><div class="spinner"></div><span>Generating your listing…</span></div>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-secondary" onclick="closeModal('modal-listing')">Close</button>
-      <button class="btn btn-listing" onclick="regenListing()">↺ Regenerate</button>
-      <button class="btn btn-primary" onclick="copyListing()">📋 Copy to Clipboard</button>
-    </div>
-  </div>
-</div>
+
 
 <!-- IMPORT MODAL -->
 <div class="modal-overlay" id="modal-import">
@@ -477,6 +457,7 @@
     </div>
     <div class="modal-footer">
       <button class="btn btn-danger btn-sm" onclick="deleteSoldRecord()" style="margin-right:auto;">Delete Record</button>
+      <button class="btn btn-warning btn-sm" onclick="revertToInventory()" title="Move this back to active inventory">↩ Revert to Inventory</button>
       <button class="btn btn-secondary" onclick="closeModal('modal-edit-sold')">Cancel</button>
       <button class="btn btn-primary" onclick="saveEditedSold()">Save Changes</button>
     </div>
@@ -513,7 +494,7 @@ function setSyncStatus(state, msg){
 
 // ── FIREBASE DATA LAYER ───────────────────────────────────────────────────────
 let inventory=[],sold=[],settings={};
-let editingId=null,sellingId=null,listingTireId=null,parsedImportRows=[];
+let editingId=null,sellingId=null,parsedImportRows=[];
 let saveTimer=null;
 
 async function loadData(){
@@ -525,7 +506,7 @@ async function loadData(){
     inventory = invSnap.exists ? (invSnap.data().items||[]) : [];
     sold = soldSnap.exists ? (soldSnap.data().items||[]) : [];
     settings = Object.assign(
-      {shopName:'',commissionPct:25,commissionOn:true,mountNote:'I work for a shop that can mount and balance for an extra charge.'},
+      {shopName:'',commissionPct:25,commissionOn:true},
       setSnap.exists ? setSnap.data() : {}
     );
     setSyncStatus('synced','✓ Synced');
@@ -539,7 +520,7 @@ async function loadData(){
     try{
       inventory=JSON.parse(localStorage.getItem('tt_inventory')||'[]');
       sold=JSON.parse(localStorage.getItem('tt_sold')||'[]');
-      settings=Object.assign({shopName:'',commissionPct:25,commissionOn:true,mountNote:'I work for a shop that can mount and balance for an extra charge.'},
+      settings=Object.assign({shopName:'',commissionPct:25,commissionOn:true},
         JSON.parse(localStorage.getItem('tt_settings')||'{}'));
       renderInventory(); updateCounts();
     }catch(e2){}
@@ -571,6 +552,17 @@ async function saveData(){
 function genId(){return Date.now().toString(36)+Math.random().toString(36).slice(2);}
 function toEasySize(s){return (s||'').replace(/[^0-9]/g,'');}
 function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+// Extract manufacture year from age string like "06/25" → "25", "2021" → "21"
+function extractMfgYear(age){
+  if(!age)return null;
+  const slashMatch=(age||'').match(/\/(\d{2,4})$/);
+  if(slashMatch){
+    const yr=slashMatch[1];
+    return yr.length===4?yr.slice(2):yr; // normalize to 2-digit
+  }
+  return null;
+}
 
 function showPage(name,tabEl){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
@@ -678,9 +670,7 @@ function confirmSell(){
     soldDate:dateStr||new Date().toISOString().split('T')[0],
     buyer,finalPrice:price,finalCost:cost,revenue:total,profit,commission:comm,
     notes:combinedNotes});
-  const remaining2=remaining;
   if(remaining>0){
-    // keep leftover tires in inventory with updated qty
     const idx=inventory.findIndex(x=>x.id===sellingId);
     if(idx>=0) inventory[idx]={...t,qty:remaining};
   } else {
@@ -690,68 +680,7 @@ function confirmSell(){
   showPage('sold',document.getElementById('tab-sold'));
 }
 
-// ── LISTING GENERATOR ────────────────────────────────────────────────────────
-function openListingModal(id){
-  listingTireId=id;
-  document.getElementById('modal-listing').classList.add('open');
-  generateListing(id);
-}
-async function generateListing(id){
-  const t=inventory.find(x=>x.id===id);if(!t)return;
-  document.getElementById('listing-content').innerHTML=
-    `<div class="listing-loading"><div class="spinner"></div><span>Generating your Facebook listing…</span></div>`;
-  const mountNote=settings.mountNote||'I work for a shop that can mount and balance for an extra charge.';
-  const total=(t.price*t.qty).toFixed(2);
-  const per=t.price.toFixed(2);
-  const qtyEmoji=['','1️⃣','2️⃣','3️⃣','4️⃣','5️⃣'][t.qty]||t.qty+'x';
-  const prompt=`You write Facebook Marketplace listings for a tire shop selling used tires. Write one listing using exactly this format and style:
 
-${qtyEmoji} ${t.size} ${t.brand} ${t.model} – ${t.condition==='USED'?'Used':t.condition==='NEW TAKE OFFS'?'New Take Offs':t.condition==='TAKE OFFS'?'Take Offs':t.condition}
-Price: 💲 ${t.qty===1?'$'+per+' for the tire':'$'+total+' for the set ('+t.qty+' tires) 💲 $'+per+' per tire'}
-Note: this price is for the tires only. ${mountNote}
-
-Description:
-• [bullet: tire type and what it's best suited for — truck, SUV, off-road, highway, etc.]
-• [bullet: load rating/ply info from ${t.load||'N/A'} if meaningful, written naturally]
-• [bullet: condition details — even wear, solid tread, no plugs, no patches, no sidewall damage — adjust based on condition "${t.condition}"]
-• DOT: ${t.age} (calculate approximate age and mention naturally, e.g. "about 2 years old")
-
-Tread Depth:
-• ${t.tread} remaining (add a natural note about remaining life)
-${t.notes?'\nImportant note to work in: '+t.notes:''}
-
-[One closing line about value/deal]
-
-📍 Local pickup 💬 Message me if interested
-
-Tire details: Qty=${t.qty}, Size=${t.size}, Load/Speed=${t.load||'N/A'}, Brand=${t.brand}, Model=${t.model}, Condition=${t.condition}, Age=${t.age||'unknown'}, Tread=${t.tread||'unknown'}
-
-Output only the listing text. No extra commentary.`;
-
-  try{
-    const resp=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:prompt}]})
-    });
-    const data=await resp.json();
-    const text=data.content?.[0]?.text||'Could not generate listing.';
-    document.getElementById('listing-content').innerHTML=
-      `<div class="listing-output" id="listing-text">${escHtml(text)}</div>`;
-  }catch(e){
-    document.getElementById('listing-content').innerHTML=
-      `<div style="color:var(--red);padding:16px;">Error generating listing. Check your connection and try again.</div>`;
-  }
-}
-function regenListing(){if(listingTireId)generateListing(listingTireId);}
-function copyListing(){
-  const el=document.getElementById('listing-text');if(!el)return;
-  navigator.clipboard.writeText(el.textContent).then(()=>{
-    const btn=document.querySelector('#modal-listing .btn-primary');
-    const orig=btn.textContent;btn.textContent='✓ Copied!';
-    setTimeout(()=>btn.textContent=orig,1800);
-  });
-}
 
 // ── IMPORT ───────────────────────────────────────────────────────────────────
 let importTab='inventory'; // 'inventory' or 'sold'
@@ -902,13 +831,26 @@ function renderInventory(){
   const q=(document.getElementById('inv-search').value||'').toLowerCase();
   const sf=document.getElementById('inv-status-filter').value;
   const szf=document.getElementById('inv-size-filter').value;
+  const yrf=document.getElementById('inv-year-filter').value;
+
+  // Rebuild size dropdown
+  const szSel=document.getElementById('inv-size-filter');
+  const curSz=szSel.value;
+  const sizes=[...new Set(inventory.map(t=>t.size))].sort();
+  szSel.innerHTML='<option value="">All Sizes</option>'+sizes.map(s=>`<option value="${s}"${s===curSz?' selected':''}>${s}</option>`).join('');
+
+  // Rebuild year dropdown — pull from age field (e.g. "06/25" → year "25")
+  const yrSel=document.getElementById('inv-year-filter');
+  const curYr=yrSel.value;
+  const years=[...new Set(inventory.map(t=>extractMfgYear(t.age)).filter(Boolean))].sort();
+  yrSel.innerHTML='<option value="">All Years</option>'+years.map(y=>`<option value="${y}"${y===curYr?' selected':''}>${y.length===2?'20'+y:y}</option>`).join('');
+
   let data=inventory.filter(t=>{
     const str=[t.easySize,t.size,t.brand,t.model,t.condition,t.position,t.notes,t.load].join(' ').toLowerCase();
-    return(!q||str.includes(q))&&(!sf||t.status===sf)&&(!szf||t.size===szf);
+    const yearMatch=!yrf||extractMfgYear(t.age)===yrf;
+    return(!q||str.includes(q))&&(!sf||t.status===sf)&&(!szf||t.size===szf)&&yearMatch;
   });
-  const sel=document.getElementById('inv-size-filter');const curSz=sel.value;
-  const sizes=[...new Set(inventory.map(t=>t.size))].sort();
-  sel.innerHTML='<option value="">All Sizes</option>'+sizes.map(s=>`<option value="${s}"${s===curSz?' selected':''}>${s}</option>`).join('');
+
   document.getElementById('inv-tbody').innerHTML=data.map(t=>`<tr>
     <td style="width:24px;"><span class="qty-badge">${t.qty}</span></td>
     <td style="width:78px;"><div class="tire-size">${escHtml(t.size)}</div><div class="easy-size">${t.easySize}</div></td>
@@ -923,8 +865,7 @@ function renderInventory(){
     <td style="width:50px;color:var(--accent);font-family:var(--font-mono);font-size:11px;">$${t.price.toFixed(2)}</td>
     <td style="width:50px;color:var(--green);font-family:var(--font-mono);font-size:11px;">$${(t.price*t.qty).toFixed(2)}</td>
     <td style="width:72px;font-size:10px;color:var(--text3);overflow:hidden;text-overflow:ellipsis;">${escHtml(t.notes||'')}</td>
-    <td style="width:116px;"><div style="display:flex;gap:3px;">
-      <button class="btn btn-listing btn-sm" onclick="openListingModal('${t.id}')" title="Generate FB listing">📋</button>
+    <td style="width:84px;"><div style="display:flex;gap:3px;">
       <button class="btn btn-secondary btn-sm" onclick="openAddModal('${t.id}')">Edit</button>
       <button class="btn btn-success btn-sm" onclick="openSellModal('${t.id}')">Sell</button>
       <button class="btn btn-danger btn-sm" onclick="deleteTire('${t.id}')">✕</button>
@@ -1049,13 +990,13 @@ function loadSettingsUI(){
   document.getElementById('set-shop-name').value=settings.shopName||'';
   document.getElementById('set-commission').value=settings.commissionPct;
   document.getElementById('set-commission-on').value=settings.commissionOn?'1':'0';
-  document.getElementById('set-mount-note').value=settings.mountNote||'';
+  document.getElementById('set-mount-note') && (document.getElementById('set-mount-note').value=settings.mountNote||'');
 }
 function saveSettings(){
   settings.shopName=document.getElementById('set-shop-name').value.trim();
   settings.commissionPct=parseFloat(document.getElementById('set-commission').value)||25;
   settings.commissionOn=document.getElementById('set-commission-on').value==='1';
-  settings.mountNote=document.getElementById('set-mount-note').value.trim();
+  settings.mountNote=document.getElementById('set-mount-note')?document.getElementById('set-mount-note').value.trim():'';
   saveData();
   if(settings.shopName)document.getElementById('header-shop-name').textContent=settings.shopName;
   const el=document.getElementById('settings-saved');el.style.display='block';setTimeout(()=>el.style.display='none',2000);
@@ -1073,7 +1014,7 @@ function importDataPrompt(){
         const d=JSON.parse(ev.target.result);
         if(confirm('This will replace ALL current data. Continue?')){
           inventory=d.inventory||[];sold=d.sold||[];
-          settings=Object.assign({shopName:'',commissionPct:25,commissionOn:true,mountNote:''},d.settings||{});
+          settings=Object.assign({shopName:'',commissionPct:25,commissionOn:true},d.settings||{});
           saveData();renderInventory();loadSettingsUI();alert('Imported successfully!');
         }
       }catch(e){alert('Invalid file.');}
@@ -1148,6 +1089,47 @@ function deleteSoldRecord(){
   sold=sold.filter(x=>(x.soldId||x.id)!==id);
   saveData();closeModal('modal-edit-sold');renderSold();updateCounts();
 }
+
+// ── REVERT SOLD TO INVENTORY ─────────────────────────────────────────────────
+function revertToInventory(){
+  const id=document.getElementById('es-id').value;
+  const t=sold.find(x=>(x.soldId||x.id)===id);
+  if(!t)return;
+  const qty=parseInt(document.getElementById('es-qty').value)||t.qty;
+  const size=document.getElementById('es-size').value.trim().toUpperCase()||t.size;
+  if(!confirm(`Move ${qty}x ${size} back to active inventory?\n\nThis will remove the sold record and add the tires back to inventory with status "NOT LISTED".`))return;
+
+  // Remove from sold
+  sold=sold.filter(x=>(x.soldId||x.id)!==id);
+
+  // Build clean inventory record — strip sale-specific fields
+  const {soldId,soldDate,buyer,finalPrice,finalCost,revenue,profit,commission,...restOfTire}=t;
+  const restoredTire={
+    ...restOfTire,
+    id:genId(), // fresh inventory ID
+    qty,
+    size,
+    easySize:toEasySize(size),
+    load:document.getElementById('es-load').value.trim().toUpperCase()||t.load||'',
+    brand:document.getElementById('es-brand').value.trim()||t.brand,
+    model:document.getElementById('es-model').value.trim()||t.model,
+    condition:document.getElementById('es-condition').value||t.condition,
+    age:document.getElementById('es-age').value.trim()||t.age||'',
+    tread:document.getElementById('es-tread').value.trim()||t.tread||'',
+    price:parseFloat(document.getElementById('es-price').value)||t.finalPrice||t.price||0,
+    cost:parseFloat(document.getElementById('es-cost').value)||t.finalCost||t.cost||0,
+    notes:document.getElementById('es-notes').value.trim()||t.notes||'',
+    status:'NOT LISTED',
+    addedDate:new Date().toISOString(),
+  };
+  inventory.push(restoredTire);
+  saveData();
+  closeModal('modal-edit-sold');
+  renderSold();
+  updateCounts();
+  showPage('inventory',document.getElementById('tab-inventory'));
+}
+
 // ── UTILS ─────────────────────────────────────────────────────────────────────
 function updateCounts(){
   document.getElementById('inv-count').textContent=inventory.length;
