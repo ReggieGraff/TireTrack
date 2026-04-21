@@ -59,10 +59,8 @@
   .easy-size{font-family:var(--font-mono);font-size:11px;color:var(--text3);}
   .badge{display:inline-flex;align-items:center;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:600;}
   .badge-listed{background:var(--green-dim);color:var(--green);}
-  .badge-not-listed{background:var(--surface3);color:var(--text2);}
+  .badge-available{background:var(--surface3);color:var(--text2);}
   .badge-pending{background:var(--orange-dim);color:var(--orange);}
-  .badge-please-list{background:#2a1a3a;color:#c084fc;border:1px solid #9333ea;animation:pulse-badge 2s ease-in-out infinite;}
-  @keyframes pulse-badge{0%,100%{opacity:1;}50%{opacity:.6;}}
   .badge-sold{background:var(--blue-dim);color:var(--blue);}
   .form-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;}
   .form-group{display:flex;flex-direction:column;gap:6px;}
@@ -189,9 +187,8 @@
       </div>
       <select class="filter-select" id="inv-status-filter" onchange="renderInventory()">
         <option value="">All Statuses</option>
-        <option value="PLEASE LIST">Please List</option>
+        <option value="AVAILABLE">Available</option>
         <option value="LISTED">Listed</option>
-        <option value="NOT LISTED">Not Listed</option>
         <option value="PENDING">Pending</option>
       </select>
       <select class="filter-select" id="inv-size-filter" onchange="renderInventory()">
@@ -318,17 +315,14 @@
         </div>
         <div class="form-group"><label>Age (MM/YY)</label><input type="text" id="f-age" placeholder="06/25"></div>
         <div class="form-group"><label>Tread Depth (e.g. 8/32)</label><input type="text" id="f-tread" placeholder="8/32"></div>
-        <div class="form-group"><label>Position in Store</label><input type="text" id="f-position" placeholder="Outside - North Middle" list="pos-list">
+        <div class="form-group"><label>Position in Store</label><input type="text" id="f-position" placeholder="Inside" list="pos-list">
           <datalist id="pos-list">
-            <option value="Inside"><option value="Upstairs"><option value="Outside - North Top">
-            <option value="Outside - North Middle"><option value="Outside - North Ground">
-            <option value="Outside - South"><option value="Main Floor - First Isle Up Top">
+            <option value="Inside"><option value="Outside">
           </datalist>
         </div>
         <div class="form-group"><label>Status</label>
           <select id="f-status">
-            <option value="NOT LISTED">Not Listed</option>
-            <option value="PLEASE LIST">Please List</option>
+            <option value="AVAILABLE">Available</option>
             <option value="LISTED">Listed</option>
             <option value="PENDING">Pending</option>
           </select>
@@ -590,7 +584,7 @@ function openAddModal(id){
   }else{
     document.getElementById('modal-add-title').textContent='ADD TIRES';
     ['f-size','f-load','f-brand','f-model','f-age','f-tread','f-position','f-notes','f-price'].forEach(x=>g(x).value='');
-    g('f-qty').value=4;g('f-cost').value=0;g('f-condition').value='USED';g('f-status').value='NOT LISTED';
+    g('f-qty').value=4;g('f-cost').value=0;g('f-condition').value='USED';g('f-status').value='AVAILABLE';
   }
   document.getElementById('modal-add').classList.add('open');
 }
@@ -727,7 +721,7 @@ function previewImport(){
     const condition=normCond((cols[6]||'').trim());
     const age=(cols[7]||'').trim();
     const tread=(cols[8]||'').trim();
-    const position=(cols[9]||'').trim();
+    const position=normPosition((cols[9]||'').trim());
     const statusRaw=(cols[10]||'').trim().toUpperCase();
     const notes=(cols[11]||'').trim();
     const priceEach=parseFloat((cols[12]||'').replace(/[^0-9.]/g,''))||0;
@@ -806,10 +800,14 @@ function normCond(s){
 }
 function normStatus(s){
   const u=s.toUpperCase();
-  if(u.includes('PLEASE'))return'PLEASE LIST';
   if(u.includes('LISTED'))return'LISTED';
   if(u.includes('PENDING'))return'PENDING';
-  return'NOT LISTED';
+  return'AVAILABLE';
+}
+function normPosition(s){
+  const u=(s||'').toUpperCase();
+  if(u.includes('OUT'))return'Outside';
+  return'Inside';
 }
 
 function confirmImport(){
@@ -860,11 +858,11 @@ function renderInventory(){
     <td style="width:58px;font-size:10px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;">${t.condition}</td>
     <td style="width:38px;color:var(--text3);font-size:11px;">${t.age}</td>
     <td style="width:40px;font-family:var(--font-mono);font-size:11px;">${t.tread}</td>
-    <td style="width:40px;font-size:10px;color:var(--text3);overflow:hidden;text-overflow:ellipsis;" title="${escHtml(t.position)}">${escHtml(t.position)}</td>
+    <td style="width:28px;font-size:10px;color:var(--text3);overflow:hidden;text-overflow:ellipsis;" title="${escHtml(t.position)}">${escHtml(t.position)}</td>
     <td style="width:66px;">${statusBadge(t.status)}</td>
     <td style="width:50px;color:var(--accent);font-family:var(--font-mono);font-size:11px;">$${t.price.toFixed(2)}</td>
     <td style="width:50px;color:var(--green);font-family:var(--font-mono);font-size:11px;">$${(t.price*t.qty).toFixed(2)}</td>
-    <td style="width:72px;font-size:10px;color:var(--text3);overflow:hidden;text-overflow:ellipsis;">${escHtml(t.notes||'')}</td>
+    <td style="width:140px;font-size:10px;color:var(--text3);overflow:hidden;text-overflow:ellipsis;">${escHtml(t.notes||'')}</td>
     <td style="width:84px;"><div style="display:flex;gap:3px;">
       <button class="btn btn-secondary btn-sm" onclick="openAddModal('${t.id}')">Edit</button>
       <button class="btn btn-success btn-sm" onclick="openSellModal('${t.id}')">Sell</button>
@@ -876,20 +874,20 @@ function renderInventory(){
   empty.style.display=data.length?'none':'block';
   wrap.style.display=data.length?'block':'none';
   const listed=inventory.filter(x=>x.status==='LISTED').length;
-  const pleaseList=inventory.filter(x=>x.status==='PLEASE LIST').length;
+  const available=inventory.filter(x=>x.status==='AVAILABLE').length;
   const pending=inventory.filter(x=>x.status==='PENDING').length;
   const value=inventory.reduce((a,t)=>a+t.price*t.qty,0);
   document.getElementById('inv-stats').innerHTML=`
     <div class="stat-card"><div class="stat-label">Sets in Stock</div><div class="stat-value">${inventory.length}</div></div>
     <div class="stat-card green"><div class="stat-label">Listed</div><div class="stat-value">${listed}</div></div>
-    <div class="stat-card"><div class="stat-label">Please List</div><div class="stat-value" style="color:#c084fc;">${pleaseList}</div></div>
+    <div class="stat-card"><div class="stat-label">Available</div><div class="stat-value" style="color:var(--text2);">${available}</div></div>
     <div class="stat-card"><div class="stat-label">Pending</div><div class="stat-value" style="color:var(--orange);">${pending}</div></div>
     <div class="stat-card accent"><div class="stat-label">Inventory Value</div><div class="stat-value">$${Math.round(value).toLocaleString()}</div></div>`;
   updateCounts();
 }
 function statusBadge(s){
-  const m={'LISTED':'badge-listed','NOT LISTED':'badge-not-listed','PENDING':'badge-pending','SOLD':'badge-sold','PLEASE LIST':'badge-please-list'};
-  return`<span class="badge ${m[s]||'badge-not-listed'}">${s}</span>`;
+  const m={'LISTED':'badge-listed','AVAILABLE':'badge-available','PENDING':'badge-pending','SOLD':'badge-sold'};
+  return`<span class="badge ${m[s]||'badge-available'}">${s==='AVAILABLE'?'Available':s==='LISTED'?'Listed':s==='PENDING'?'Pending':s}</span>`;
 }
 
 // ── RENDER SOLD ──────────────────────────────────────────────────────────────
@@ -1097,7 +1095,7 @@ function revertToInventory(){
   if(!t)return;
   const qty=parseInt(document.getElementById('es-qty').value)||t.qty;
   const size=document.getElementById('es-size').value.trim().toUpperCase()||t.size;
-  if(!confirm(`Move ${qty}x ${size} back to active inventory?\n\nThis will remove the sold record and add the tires back to inventory with status "NOT LISTED".`))return;
+  if(!confirm(`Move ${qty}x ${size} back to active inventory?\n\nThis will remove the sold record and add the tires back to inventory with status "Available".`))return;
 
   // Remove from sold
   sold=sold.filter(x=>(x.soldId||x.id)!==id);
@@ -1119,7 +1117,7 @@ function revertToInventory(){
     price:parseFloat(document.getElementById('es-price').value)||t.finalPrice||t.price||0,
     cost:parseFloat(document.getElementById('es-cost').value)||t.finalCost||t.cost||0,
     notes:document.getElementById('es-notes').value.trim()||t.notes||'',
-    status:'NOT LISTED',
+    status:'AVAILABLE',
     addedDate:new Date().toISOString(),
   };
   inventory.push(restoredTire);
